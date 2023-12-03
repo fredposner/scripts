@@ -1,9 +1,9 @@
 apt install tcpdump sngrep vim
 apt install build-essential
-apt install git-core subversion libjansson-dev sqlite autoconf automake libxml2-dev libncurses5-dev libtool
+apt install git-core subversion libjansson-dev libsqlite3-dev autoconf automake libxml2-dev libncurses5-dev libtool libedit-dev uuid-dev
 cd /usr/local/src
-wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-16-current.tar.gz
-tar -xzvf asterisk-16-current.tar.gz 
+wget downloads.asterisk.org/pub/telephony/asterisk/releases/asterisk-16.30.1.tar.gz
+tar -xzvf asterisk-16.30.1.tar.gz 
 cd asterisk-16*/
 ./contrib/scripts/install_prereq 
 ./contrib/scripts/install_prereq test
