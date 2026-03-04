@@ -3,15 +3,16 @@
 COMMAND=`basename $0`
 cat<<!
 
-..#######.#######.########.#######.########.########..#######..######.##....#.#######.########.
-.##.....#.##......##.....#.##......##.....#.##.....#.##.....#.##....#.###...#.##......##.....##
-.##.###.#.##......##.....#.##......##.....#.##.....#.##.....#.##......####..#.##......##.....##
-.##.###.#.######..########.######..##.....#.########.##.....#..######.##.##.#.######..########.
-.##.#####.##......##...##..##......##.....#.##.......##.....#.......#.##..###.##......##...##..
-.##.......##......##....##.##......##.....#.##.......##.....#.##....#.##...##.##......##....##.
-..#######.##......##.....#.#######.########.##........#######..######.##....#.#######.##.....##
+    .::                      .::                                                   
+  .:                         .::                                                   
+.:.: .:.: .:::   .::         .::.: .::     .::     .:::: .:: .::     .::    .: .:::
+  .::   .::    .:   .::  .:: .::.:  .::  .::  .:: .::     .::  .:: .:   .::  .::   
+  .::   .::   .::::: .::.:   .::.:   .::.::    .::  .:::  .::  .::.::::: .:: .::   
+  .::   .::   .:        .:   .::.:: .::  .::  .::     .:: .::  .::.:         .::   
+  .::  .:::     .::::    .:: .::.::        .::    .:: .::.:::  .::  .::::   .:::   
+                                .::                                                
 
-(c) 2025 Fred Posner
+(c) 2025,2026 Fred Posner
 This program comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome to redistribute it under
 certain conditions. MIT License
@@ -46,22 +47,30 @@ OPTIONS
   -d DIRECTORY
       specify directory. Default is current directory
 
+  -p PREFIX
+      add a prefix to the filename
+
+  -l LOWERCASE
+      convert to lowercase
+
 AUTHOR
   Written by Fred Posner <fred@pgpx.io>
 
 COPYRIGHT
-  Copyright (C) 2025 Fred Posner
+  Copyright (C) 2025,2026 Fred Posner
 
 EOF
 }
 
 #-- check arguments and environment
-while getopts "od:" flag; do
+while getopts "ouhld:p:" flag; do
 	case $flag in
 		o) KEEPORIG=true ;;
 		h) usage; exit 0 ;;
         d) DIRECTORY="$OPTARG" ;;
+		p) PREFIX="$OPTARG" ;;
         u) USEUNDERSCORE=true;;
+        l) USELOWERCASE=true;;
 		\?) usage; echo "Invalid option: $OPTARG"; exit 0 ;;
 	esac
 done
@@ -84,18 +93,53 @@ fi
 cd $DIRECTORY
 echo "[-] starting"
 for f in *; do
-    if [[ -f "$f" && "$f" == *" "* ]]; then
-        echo -e "\t...handling $f"
-        if [ "$KEEPORIG" = true ] ; then 
-            CMD="cp"
-        else
-            CMD="mv"
-        fi
+    echo -e "\t...handling $f"
+    if [ "$USELOWERCASE" = true ] ; then 
+        fname=$(echo "$f" | tr '[:upper:]' '[:lower:]')
+    else
+        fname=$f
+    fi
 
+    if [ "$KEEPORIG" = true ] ; then 
+        CMD="cp"
+    else
+        CMD="mv"
+    fi
+
+    if [[ -f "$f" && "$f" == *" "* ]]; then
+        echo -e "\t\t... spaces need to be removed"
         if [ "$USEUNDERSCORE" = true ] ; then 
-            $CMD "$f" "${f// /_}"
+			if [ -z "${PREFIX}" ]; then
+				$CMD "$f" "${fname// /_}"
+			else
+                echo -e "\t\t... adding prefix"
+				$CMD "$f" "${PREFIX}_${fname// /_}"
+			fi
         else
-            $CMD "$f" "${f// /-}"
+			if [ -z "${PREFIX}" ]; then
+				$CMD "$f" "${fname// /-}"
+			else
+                echo -e "\t\t... adding prefix"
+				$CMD "$f" "${PREFIX}-${fname// /-}"
+			fi
+        fi
+    else
+        echo -e "\t\t... no spaces"
+        if [ "$f" != "$fname" ]; then
+            if [ -z "${PREFIX}" ]; then
+                echo -e "\t\t... making lowercase"
+                $CMD "$f" "$fname"
+            else 
+                echo -e "\t\t... adding prefix"
+                $CMD "$f" "${PREFIX}-${fname}"
+            fi
+        else
+            if [ -z "${PREFIX}" ]; then
+                echo -e "\t\t... moving on"
+            else 
+                echo -e "\t\t... adding prefix"
+                $CMD "$f" "${PREFIX}-${fname}"
+            fi
         fi
     fi
 done
